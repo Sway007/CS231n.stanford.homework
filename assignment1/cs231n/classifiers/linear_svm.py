@@ -79,7 +79,11 @@ def svm_loss_vectorized(W, X, y, reg):
   correct_scores = scores[np.arange(scores.shape[0]), y].reshape(-1, 1)
   loss = scores - correct_scores + 1
   loss[loss < 0] = 0
-  loss = np.sum(loss)
+
+  num_train = X.shape[0]
+  loss = np.sum(loss) - num_train
+  loss /= num_train
+  loss += reg * np.sum(W*W)
   #############################################################################
   #                             END OF YOUR CODE                              #
   #############################################################################
