@@ -80,6 +80,10 @@ def svm_loss_vectorized(W, X, y, reg):
   loss = scores - correct_scores + 1
   loss[loss < 0] = 0
 
+  num_train = X.shape[0]
+  loss = np.sum(loss) - num_train
+  loss /= num_train
+  loss += reg * np.sum(W*W)
   #############################################################################
   #                             END OF YOUR CODE                              #
   #############################################################################
@@ -94,7 +98,20 @@ def svm_loss_vectorized(W, X, y, reg):
   # to reuse some of the intermediate values that you used to compute the     #
   # loss.                                                                     #
   #############################################################################
-  pass
+  factors = np.ones()
+
+
+  num_class = W.shape[1]
+  num_demension = X.shape[1]
+  dW = np.sum(X, axis=0).reshape(-1, 1) * np.ones((1, num_class))
+
+  tmp = np.zeros((num_train, num_class, num_demension))
+  tmp[np.arange(num_train), y] = num_class * X
+  dW += np.sum(tmp, axis=0).reshape(-1, 1)
+
+  dW /= num_train
+
+  dW += 2 * reg * W
   #############################################################################
   #                             END OF YOUR CODE                              #
   #############################################################################
