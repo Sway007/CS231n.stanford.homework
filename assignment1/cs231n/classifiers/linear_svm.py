@@ -75,13 +75,16 @@ def svm_loss_vectorized(W, X, y, reg):
   # Implement a vectorized version of the structured SVM loss, storing the    #
   # result in loss.                                                           #
   #############################################################################
+  num_train = X.shape[0]
   scores = X.dot(W)
   correct_scores = scores[np.arange(scores.shape[0]), y].reshape(-1, 1)
   loss = scores - correct_scores + 1
-  loss[loss < 0] = 0
+  mask =  np.ones(loss.shape)
+  mask[loss < 0] = 0
+  mask[np.arange(num_train), y] = 0
+  loss[mask < 1] = 0
+  loss = np.sum(loss)
 
-  num_train = X.shape[0]
-  loss = np.sum(loss) - num_train
   loss /= num_train
   loss += reg * np.sum(W*W)
   #############################################################################
@@ -98,19 +101,12 @@ def svm_loss_vectorized(W, X, y, reg):
   # to reuse some of the intermediate values that you used to compute the     #
   # loss.                                                                     #
   #############################################################################
-  factors = np.ones()
+  coeffecients = np.ones(mask.shape)
+  coeffecients[mask < 1] = 0
+  coeffecients[np.arange(num_train), y] -= np.sum(mask, axis=1)
 
-
-  num_class = W.shape[1]
-  num_demension = X.shape[1]
-  dW = np.sum(X, axis=0).reshape(-1, 1) * np.ones((1, num_class))
-
-  tmp = np.zeros((num_train, num_class, num_demension))
-  tmp[np.arange(num_train), y] = num_class * X
-  dW += np.sum(tmp, axis=0).reshape(-1, 1)
-
+  dW = np.dot(X.T, coeffecients)
   dW /= num_train
-
   dW += 2 * reg * W
   #############################################################################
   #                             END OF YOUR CODE                              #
