@@ -32,24 +32,28 @@ def softmax_loss_naive(W, X, y, reg):
   #############################################################################
   num_train, num_dimenstion = X.shape
   num_class = W.shape[1]
+  prob_history = []
   for i in xrange(num_train):
     scores = np.dot(X[i], W)
     scores -= np.max(scores)    # Numeric stability.
     exp_scores = np.exp(scores)
     prob = exp_scores[y[i]] / np.sum(exp_scores)
-    loss -= np.log(prob)
+    prob_history.append(prob)
 
   # derivative(without regularization):
-  # dLi/dWj = Li * (1-Li) * Xi when j=yi
-  # else    = -Lyi * Lj * xi
+  # dLi/dWj = 1/Pyi * Pyi * (1-Pyi) * Xi when j=yi
+  # else    = 1/Pyi * -Pyi * Pj * Xi
   for i in xrange(num_train):
     for j in xrange(num_class):
       if j == y[i]:
-        dW[:, j] += loss[i] * (1-loss[i]) * X[i].reshape(-1, 1)
+        # dW[:, j] += 1/prob_history[i] * prob_history[i] * (1-prob_history[i]) * X[i]
+        dW[:, j] += -(1-prob_history[j]) * X[i]
       else:
-        dW[:, j] += -1 * loss[y[i]] * loss[j] * X[i].reshape(-1, 1)
+        dW[:, j] += prob_history[j] * X[i]
   
-  loss += reg * W**2
+  loss = np.mean(-np.log(prob_history))
+  loss += reg * np.sum(W**2)
+  dW /= num_train
   dW += reg * 2 * W
   #############################################################################
   #                          END OF YOUR CODE                                 #
