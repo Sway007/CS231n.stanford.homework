@@ -76,7 +76,7 @@ class TwoLayerNet(object):
     # Store the result in the scores variable, which should be an array of      #
     # shape (N, C).                                                             #
     #############################################################################
-    z1 = (np.dot(X, W1) + b1)
+    z1 = np.dot(X, W1) + b1
     mask1 = z1 < 0
     z1[mask1] = 0
 
@@ -120,9 +120,10 @@ class TwoLayerNet(object):
 
     dz1 = 1/N * np.dot(prob_matrix, W2.T)
     dz1[mask1] = 0
-    dW1 = 1/N * np.dot(X.T, dz1)
+    dW1 = np.dot(X.T, dz1)
     dW1 += reg * 2 * W1
-    grads = {'W1': dW1, 'W2': dW2, 'b1': 1, 'b2': db2}
+    db1 = np.sum(dz1, axis=0)
+    grads = {'W1': dW1, 'W2': dW2, 'b1': db1, 'b2': db2}
     #############################################################################
     #                              END OF YOUR CODE                             #
     #############################################################################
